@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import re
+import pint
+import math
 import timeit
 import functools
 import statistics
@@ -8,6 +9,7 @@ from typing import Any
 from abc import ABC, abstractmethod
 
 from .units import units
+from .PatternEncoded import PatternEncoded
 
 
 
@@ -22,14 +24,14 @@ class Benchmark(ABC):
 			new_method = functools.partial(method, **config.kwargs)
 			setattr(self, method_name, new_method)
 
-	def prepare(self, *args, **kwargs):
+	def prepare(self, **kwargs):
 		pass
 
 	@abstractmethod
-	def run(self, *args, **kwargs):
+	def run(self, **kwargs):
 		pass
 
-	def clean(self, *args, **kwargs):
+	def clean(self, **kwargs):
 		pass
 
 	def __call__(self) -> float:
@@ -52,36 +54,54 @@ class Benchmark(ABC):
 	@property
 	def metrics(self) -> dict:
 		return {
-			name: getattr(self, name)
-			for name in dir(self)
-			if name.startswith('metric_')
+			Benchmark.MetricName(name): getattr(self, name)
+			for name in Benchmark.MetricName.filter(dir(self))
 		}
 
 	class Config(dict):
 
-		def isSpecial(name) -> bool:
-			return re.match('__\w+__', name)
-
 		@property
 		def kwargs(self) -> dict[str, Any]:
 			return {
-				k: v
-				for k, v in self.items()
-				if not Benchmark.Config.isSpecial(k)
+				k: self[k]
+				for k in self.__class__.Special.unfilter(self)
 			}
 
 		@property
 		def special(self) -> dict[str, Any]:
 			return {
-				k[2:-2]: v
-				for k, v in self.items()
-				if Benchmark.Config.isSpecial(k)
+				self.__class__.Special(k): self[k]
+				for k in self.__class__.Special.filter(self)
 			}
+
+		class Special(PatternEncoded):
+			pattern = '__(\w+)__'
+
+	class MetricName(PatternEncoded):
+		pattern = 'metric_((\w|_)+)'
 
 	class Report(dict):
 
-		def __new__(_, b: Benchmark):
+		def __new__(C, b: Benchmark):
 			return {
-				k: str(v)
+				k: C.Value(v)
 				for k, v in b.metrics.items()
 			}
+
+		class Value(str):
+
+			def __new__(C, v: Any):
+				if isinstance(v, pint.quantity.Quantity):
+					return str(C.Rounded(v.m, 3) * v.u)
+				elif isinstance(v, float):
+					return str(C.Rounded(v))
+				else:
+					return str(v)
+
+			class Rounded(float):
+
+				def __new__(self, f: float, precision: int):
+					if math.floor(f) != f:
+						return round(f, round(math.log(1 / (f - math.floor(f)), 10)) - 1 + precision)
+					else:
+						return f
