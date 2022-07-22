@@ -39,7 +39,7 @@ class Benchmarks(dict):
 			name: e(Benchmark.Config(config[name]))
 			for name in dir(module)
 			for e in [getattr(module, name)]
-			if hasattr(e, '__bases__') and Benchmark in e.__bases__
+			if name in config and hasattr(e, '__bases__') and Benchmark in e.__bases__
 		}
 
 
