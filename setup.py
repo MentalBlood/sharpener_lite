@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 	setup(
 		name='sharpener_lite',
-		version='0.1.1',
+		version='0.2.0',
 		description='Handy profiling/benchmarking tool',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
