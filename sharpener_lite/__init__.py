@@ -1,2 +1,2 @@
-from .metric import metric
+from .units import units
 from .Benchmark import Benchmark

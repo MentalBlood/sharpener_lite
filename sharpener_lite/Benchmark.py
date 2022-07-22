@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import re
 import timeit
+import functools
 import statistics
 from typing import Any
-from functools import partial
 from abc import ABC, abstractmethod
 
-from .metric import metric
+from .units import units
 
 
 
@@ -19,7 +19,7 @@ class Benchmark(ABC):
 
 		for method_name in ['prepare', 'run', 'clean']:
 			method = getattr(self, method_name)
-			new_method = partial(method, **config.kwargs)
+			new_method = functools.partial(method, **config.kwargs)
 			setattr(self, method_name, new_method)
 
 	def prepare(self, *args, **kwargs):
@@ -40,14 +40,22 @@ class Benchmark(ABC):
 
 		return result
 
+	@functools.cached_property
+	def metric_mean_time(self):
+		return statistics.mean(
+			(
+				self()
+				for _ in range(self.config.special['n'])
+			)
+		) * units.seconds
+
 	@property
-	def metrics(self) -> list[metric]:
-		return [
-			e
-			for name in set(dir(self)) - {'metrics'}
-			for e in [getattr(self, name)]
-			if type(e) == metric
-		]
+	def metrics(self) -> dict:
+		return {
+			name: getattr(self, name)
+			for name in dir(self)
+			if name.startswith('metric_')
+		}
 
 	class Config(dict):
 
@@ -73,18 +81,7 @@ class Benchmark(ABC):
 	class Report(dict):
 
 		def __new__(_, b: Benchmark):
-
-			t = statistics.mean(
-				(
-					b()
-					for _ in range(b.config.special['n'])
-				)
-			)
-
 			return {
-				'time': t,
-				'metrics': {
-					m.name: m(b, t)
-					for m in b.metrics
-				}
+				k: str(v)
+				for k, v in b.metrics.items()
 			}
