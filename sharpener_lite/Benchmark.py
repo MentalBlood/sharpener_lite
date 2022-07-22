@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import re
 import timeit
+import statistics
 from typing import Any
 from functools import partial
 from abc import ABC, abstractmethod
+
+from .metric import metric
 
 
 
@@ -37,6 +40,15 @@ class Benchmark(ABC):
 
 		return result
 
+	@property
+	def metrics(self) -> list[metric]:
+		return [
+			e
+			for name in set(dir(self)) - {'metrics'}
+			for e in [getattr(self, name)]
+			if type(e) == metric
+		]
+
 	class Config(dict):
 
 		def isSpecial(name) -> bool:
@@ -56,4 +68,23 @@ class Benchmark(ABC):
 				k[2:-2]: v
 				for k, v in self.items()
 				if Benchmark.Config.isSpecial(k)
+			}
+
+	class Report(dict):
+
+		def __new__(_, b: Benchmark):
+
+			t = statistics.mean(
+				(
+					b()
+					for _ in range(b.config.special['n'])
+				)
+			)
+
+			return {
+				'time': t,
+				'metrics': {
+					m.name: m(b, t)
+					for m in b.metrics
+				}
 			}

@@ -71,12 +71,7 @@ class Session:
 	def __call__(self):
 		return {
 			m_name: {
-				b_name: statistics.mean(
-					(
-						b()
-						for i in range(b.config.special['n'])
-					)
-				)
+				b_name: Benchmark.Report(b)
 				for b_name, b in m.items()
 			}
 			for m_name, m in self.modules.items()
