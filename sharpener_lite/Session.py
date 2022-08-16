@@ -75,7 +75,7 @@ class Session:
 		@functools.cached_property
 		def as_table(self):
 
-			t = Table(show_header=False, show_lines=True, pad_edge=False, show_edge=False)
+			t = Table(show_header=False, show_lines=True)
 			t.add_column('Module')
 			t.add_column('Benchmarks')
 
