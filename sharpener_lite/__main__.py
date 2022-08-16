@@ -41,6 +41,15 @@ parser.add_argument(
 	default='benchmark_',
 	required=False
 )
+parser.add_argument(
+	'-m',
+	'--metrics',
+	type=str,
+	nargs='+',
+	help='Metrics names to evaluate (all by default)',
+	default=None,
+	required=False
+)
 args = parser.parse_args()
 
 
@@ -55,5 +64,5 @@ with open(
 	config = json.loads(f.read())
 
 
-result = Session(args.root, args.test_prefix, config)()
+result = Session(args.root, args.test_prefix, config)(args.metrics)
 Console().print(result.as_table)

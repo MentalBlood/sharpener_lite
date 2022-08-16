@@ -76,8 +76,6 @@ class Session:
 		def as_table(self):
 
 			t = Table(show_header=False, show_lines=True)
-			t.add_column('Module')
-			t.add_column('Benchmarks')
 
 			for module_name, benchmarks in self.as_dict.items():
 
@@ -94,10 +92,10 @@ class Session:
 
 			return t
 
-	def __call__(self):
+	def __call__(self, metrics):
 		return Session.Report({
 			m_name: {
-				b_name: Benchmark.Report(b)
+				b_name: Benchmark.Report(b, metrics)
 				for b_name, b in m.items()
 			}
 			for m_name, m in self.modules.items()

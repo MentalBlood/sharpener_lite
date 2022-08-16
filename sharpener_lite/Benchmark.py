@@ -38,12 +38,14 @@ class Benchmark(ABC):
 
 	@functools.cached_property
 	def metric_mean_time(self):
-		return statistics.mean(
-			(
-				self()
-				for _ in range(self.config.special['n'])
-			)
-		) * units.seconds
+		return (
+			statistics.mean(
+				(
+					self()
+					for _ in range(self.config.special['n'])
+				)
+			) * units.seconds
+		).to(units.milliseconds)
 
 	@property
 	def metrics(self) -> dict:
@@ -76,10 +78,11 @@ class Benchmark(ABC):
 
 	class Report(dict):
 
-		def __new__(C, b: Benchmark):
+		def __new__(C, b: Benchmark, metrics):
 			return {
 				k: C.Value(v)
 				for k, v in b.metrics.items()
+				if (metrics is None) or (k in metrics)
 			}
 
 		class Value(str):
