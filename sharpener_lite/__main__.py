@@ -2,6 +2,7 @@ import glob
 import json
 import pprint
 import argparse
+from rich.console import Console
 
 from .Session import Session
 
@@ -54,6 +55,5 @@ with open(
 	config = json.loads(f.read())
 
 
-pprint.pprint(
-	Session(args.root, args.test_prefix, config)()
-)
+result = Session(args.root, args.test_prefix, config)()
+Console().print(result.as_table)

@@ -1,10 +1,9 @@
 import os
 import glob
-import timeit
 import functools
 import importlib
-import statistics
 import dataclasses
+from rich.table import Table
 from types import ModuleType
 
 from .Benchmark import Benchmark
@@ -68,11 +67,38 @@ class Session:
 			for name in [Module.name(p, self.file_prefix)]
 		}
 
+	@dataclasses.dataclass(frozen=True)
+	class Report:
+
+		as_dict: dict
+
+		@functools.cached_property
+		def as_table(self):
+
+			t = Table(show_header=False, show_lines=True, pad_edge=False, show_edge=False)
+			t.add_column('Module')
+			t.add_column('Benchmarks')
+
+			for module_name, benchmarks in self.as_dict.items():
+
+				benchmarks_table = Table(show_header=False, show_lines=True, pad_edge=False, show_edge=False)
+				for b_name, b in benchmarks.items():
+
+					metrics_table = Table(show_header=False, pad_edge=False, show_edge=False)
+					for metric_name, metric_value in b.items():
+						metrics_table.add_row(metric_name, metric_value)
+
+					benchmarks_table.add_row(b_name, metrics_table)
+
+				t.add_row(module_name, benchmarks_table)
+
+			return t
+
 	def __call__(self):
-		return {
+		return Session.Report({
 			m_name: {
 				b_name: Benchmark.Report(b)
 				for b_name, b in m.items()
 			}
 			for m_name, m in self.modules.items()
-		}
+		})

@@ -16,22 +16,16 @@ from .PatternEncoded import PatternEncoded
 class Benchmark(ABC):
 
 	def __init__(self, config: Benchmark.Config):
-
 		self.config = config
 
-		for method_name in ['prepare', 'run', 'clean']:
-			method = getattr(self, method_name)
-			new_method = functools.partial(method, **config.kwargs)
-			setattr(self, method_name, new_method)
-
-	def prepare(self, **kwargs):
+	def prepare(self):
 		pass
 
 	@abstractmethod
-	def run(self, **kwargs):
+	def run(self):
 		pass
 
-	def clean(self, **kwargs):
+	def clean(self):
 		pass
 
 	def __call__(self) -> float:
