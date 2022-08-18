@@ -2,6 +2,7 @@ import glob
 import json
 import argparse
 
+from .Output import Output
 from .Session import Session
 
 
@@ -53,12 +54,16 @@ parser.add_argument(
 	'--format',
 	type=str,
 	help='Output format',
-	choices=[
-		name
-		for name in dir(Session.Report)
-		if name.startswith('as_')
-	],
+	choices=Session.Report.formats(),
 	default='table',
+	required=False
+)
+parser.add_argument(
+	'-o',
+	'--output',
+	type=str,
+	help='Output target',
+	default='stdout',
 	required=False
 )
 args = parser.parse_args()
@@ -75,7 +80,10 @@ with open(
 	config = json.loads(f.read())
 
 
-print(
+
+Output(
+	args.output
+).write(
 	Session(
 		args.root,
 		args.test_prefix,

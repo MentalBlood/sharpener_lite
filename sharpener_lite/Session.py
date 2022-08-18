@@ -10,6 +10,7 @@ from types import ModuleType
 from rich.console import Console
 
 from .Benchmark import Benchmark
+from .PatternEncoded import PatternEncoded
 
 
 
@@ -104,6 +105,18 @@ class Session:
 
 		def format(self, name: str) -> str | dict:
 			return getattr(self, f'as_{name}')
+
+		class FormatName(PatternEncoded):
+			pattern = 'as_((?:\w|_)+)'
+
+		@classmethod
+		def formats(C) -> list[str]:
+			return [
+				C.FormatName(name)
+				for name in C.FormatName.filter(
+					dir(C)
+				)
+			]
 
 	def __call__(self, metrics):
 		return Session.Report({
