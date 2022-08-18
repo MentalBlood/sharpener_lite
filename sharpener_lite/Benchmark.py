@@ -25,26 +25,18 @@ class Benchmark(ABC):
 	def run(self):
 		pass
 
-	def clean(self):
-		pass
-
-	def __call__(self) -> float:
-
-		self.prepare()
-		result = timeit.timeit('f()', globals={'f': self.run}, number=1)
-		self.clean()
-
-		return result
-
 	@functools.cached_property
 	def metric_mean_time(self):
+
+		n = self.config.special['n']
+
 		return (
-			statistics.mean(
-				(
-					self()
-					for _ in range(self.config.special['n'])
-				)
-			) * units.seconds
+			timeit.timeit(
+				'f()',
+				setup=self.prepare,
+				globals={'f': self.run},
+				number=n
+			) / n * units.seconds
 		).to(units.milliseconds)
 
 	@property
