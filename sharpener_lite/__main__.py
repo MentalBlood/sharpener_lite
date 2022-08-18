@@ -1,8 +1,6 @@
 import glob
 import json
-import pprint
 import argparse
-from rich.console import Console
 
 from .Session import Session
 
@@ -50,6 +48,15 @@ parser.add_argument(
 	default=None,
 	required=False
 )
+parser.add_argument(
+	'-f',
+	'--format',
+	type=str,
+	help='Output format',
+	choices=['json', 'table'],
+	default='table',
+	required=False
+)
 args = parser.parse_args()
 
 
@@ -64,5 +71,14 @@ with open(
 	config = json.loads(f.read())
 
 
-result = Session(args.root, args.test_prefix, config)(args.metrics)
-Console().print(result.as_table)
+print(
+	Session(
+		args.root,
+		args.test_prefix,
+		config
+	)(
+		args.metrics
+	).format(
+		args.format
+	)
+)

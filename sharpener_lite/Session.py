@@ -1,10 +1,13 @@
+import io
 import os
 import glob
+import json
 import functools
 import importlib
 import dataclasses
 from rich.table import Table
 from types import ModuleType
+from rich.console import Console
 
 from .Benchmark import Benchmark
 
@@ -73,7 +76,11 @@ class Session:
 		as_dict: dict
 
 		@functools.cached_property
-		def as_table(self):
+		def as_json(self) -> str:
+			return json.dumps(self.as_dict, indent=4)
+
+		@functools.cached_property
+		def as_table(self) -> str:
 
 			t = Table(show_header=False, show_lines=True)
 
@@ -90,7 +97,13 @@ class Session:
 
 				t.add_row(module_name, benchmarks_table)
 
-			return t
+			output = io.StringIO()
+			Console(file=output).print(t)
+
+			return output.getvalue()
+
+		def format(self, name: str) -> str | dict:
+			return getattr(self, f'as_{name}')
 
 	def __call__(self, metrics):
 		return Session.Report({
