@@ -53,7 +53,11 @@ parser.add_argument(
 	'--format',
 	type=str,
 	help='Output format',
-	choices=['json', 'table'],
+	choices=[
+		name
+		for name in dir(Session.Report)
+		if name.startswith('as_')
+	],
 	default='table',
 	required=False
 )
