@@ -1,10 +1,14 @@
 import io
 import sys
-from functools import partial
+import functools
+import dataclasses
 
 
 
+@dataclasses.dataclass(frozen=True)
 class Output:
+
+	name: str
 
 	class File(io.IOBase):
 
@@ -15,12 +19,13 @@ class Output:
 
 		def __new__(C, name: str):
 			try:
-				return partial(lambda x: x, C.mapping[name])
+				return functools.partial(lambda x: x, C.mapping[name])
 			except KeyError:
-				return partial(open, name, 'w', encoding='utf8')
+				return functools.partial(open, name, 'w', encoding='utf8')
 
-	def __init__(self, name: str):
-		self.file = Output.File(name)
+	@functools.cached_property
+	def file(self):
+		return self.__class__.File(self.name)
 
 	def write(self, content: str) -> None:
 		with self.file() as f:
