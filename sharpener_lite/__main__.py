@@ -66,6 +66,11 @@ parser.add_argument(
 	default='stdout',
 	required=False
 )
+parser.add_argument(
+	'--progress',
+	action=argparse.BooleanOptionalAction,
+	default=True
+)
 args = parser.parse_args()
 
 
@@ -89,7 +94,8 @@ Output(
 		args.test_prefix,
 		config
 	)(
-		args.metrics
+		args.metrics,
+		args.progress
 	).format(
 		args.format
 	)

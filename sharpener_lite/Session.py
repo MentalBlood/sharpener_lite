@@ -8,6 +8,7 @@ import dataclasses
 from rich.table import Table
 from types import ModuleType
 from rich.console import Console
+from rich.progress import track, Progress
 
 from .Benchmark import Benchmark
 from .PatternEncoded import PatternEncoded
@@ -118,11 +119,22 @@ class Session:
 				)
 			]
 
-	def __call__(self, metrics):
-		return Session.Report({
-			m_name: {
-				b_name: Benchmark.Report(b, metrics)
-				for b_name, b in m.items()
-			}
-			for m_name, m in self.modules.items()
-		})
+	def __call__(self, metrics, show_progress):
+
+		result = {}
+
+		with Progress(auto_refresh=False, disable=not show_progress) as p:
+
+			benchmarks_task = p.add_task(f'[blue]Running benchmarks', total=sum((len(m) for m in self.modules.values())))
+
+			for m_name, m in self.modules.items():
+
+				module_task = p.add_task(f'[green]{m_name}', total=len(m))
+
+				result[m_name] = {}
+				for b_name, b in m.items():
+					result[m_name][b_name] = Benchmark.Report(b, metrics)
+					p.update(benchmarks_task, advance=1)
+					p.update(module_task, advance=1)
+
+		return self.__class__.Report(result)
