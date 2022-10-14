@@ -12,14 +12,14 @@ if __name__ == '__main__':
 
 	setup(
 		name='sharpener_lite',
-		version='1.1.0',
+		version='1.1.1',
 		description='Handy profiling/benchmarking tool',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
 		author='mentalblood',
 		install_requires=[
-			'pint',
-			'rich'
+			# 'pint',
+			# 'rich'
 		],
 		python_requires='>=3.9',
 		packages=find_packages()

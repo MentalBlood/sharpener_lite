@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import pint
 import math
 import timeit
@@ -79,9 +80,13 @@ class Benchmark(ABC):
 
 		class Value(str):
 
-			def __new__(C, v: Any):
+			def __new__(C, v: Any, precision: int=3):
 				if isinstance(v, pint.quantity.Quantity):
-					return str(C.Rounded(v.m, 3) * v.u)
+					return re.sub(
+						f'(\\.\\d{{{precision-1}}}) ',
+						r'\g<1>0 ',
+						str(C.Rounded(v.m, 3) * v.u)
+					)
 				elif isinstance(v, float):
 					return str(C.Rounded(v))
 				else:
@@ -91,6 +96,6 @@ class Benchmark(ABC):
 
 				def __new__(self, f: float, precision: int):
 					if math.floor(f) != f:
-						return round(f, round(math.log(1 / (f - math.floor(f)), 10)) - 1 + precision)
+						return round(f, precision)
 					else:
 						return f

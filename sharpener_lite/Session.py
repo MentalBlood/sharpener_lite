@@ -8,7 +8,7 @@ import dataclasses
 from rich.table import Table
 from types import ModuleType
 from rich.console import Console
-from rich.progress import track, Progress
+from rich.progress import Progress
 
 from .Benchmark import Benchmark
 from .PatternEncoded import PatternEncoded
